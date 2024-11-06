@@ -208,4 +208,3 @@ When introducing an interaction effect between being nativeBorn and education le
 
 As a result, I would argue that the best model is the first, most simple model with one predictor. The R^2 for the first model is 0.288, which only marginally increases when the extra predictor of nativeBorn is added, both with only main effects and when interactions are included. Hence the predictive power of the model is not improved by adding the interaction term, and in order to avoid overfitting and allow for best interpretability, I would work with the first model when analysing this data set.
 
-
