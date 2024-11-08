@@ -1,0 +1,210 @@
+---
+title: "Assignment02_CultDS"
+output: html_document
+date: "2024-10-30"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# install packages
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(dslabs, car, ggplot2, dplyr, tidyr, readr)
+```
+
+# Part 1.
+Load  the 'divorce_margarine'dataset  from  the 'dslabs'package.  Investigate  the  correlation between  margarine  consumption  and  divorce  rates  in  Maine.  Would  an  increase  in  the preference for margarine lead to skyrocketing divorce rates?
+
+```{r}
+# Load the dataset
+df_div <- dslabs::divorce_margarine
+
+df_div$year <- as.character(df_div$year)
+
+# Investigate correlation between margarine consumption and divorce rates in Maine
+cor(df_div$divorce_rate_maine, df_div$margarine_consumption_per_capita)
+
+
+# Plot the relationship
+ggplot(df_div, aes(x = margarine_consumption_per_capita, y = divorce_rate_maine)) +
+  geom_point(aes(colour = year)) +
+  geom_smooth(method = "lm", formula = y ~ x, colour = "darkred") +
+  labs(title = "Relationship between Margarine Consumption and Divorce Rates in Maine",
+       x = "Margarine Consumption per Capita",
+       y = "Divorce Rate in Maine")
+
+# Create a model that investigates the relationship
+
+lm( 
+  data = df_div,
+  formula = divorce_rate_maine ~ margarine_consumption_per_capita,
+) %>% 
+  summary()
+```
+### ANSWER: 
+When modelling the divorce rate in Maine with the margarine consumption per capita we find a R^2 coefficient of 0.985. This means that 98.5% of the variance in the divorce rate of the data in this model be explained by the margarine consumption per capita data points used in the model. Despite this correlation being high, we would hesitate to declare that this indicates a causal relationship. A correlation of the data does not imply causation in the wider population, and in this case we would not expect that an increase in margarine consumption would result in the skyrocketing of divorce rates. Hence, we can assume this is most likely a spurious correlation, and no causal relationship can be inferred from this data.
+
+
+
+
+# Part 2.
+Load the ‘GSSvocab’dataset from the ‘car’package. 
+This dataset contains people’s scores on an English vocabulary test and includes demographic information.
+```{r}
+# load data
+df_vocab <- carData::GSSvocab
+
+```
+
+
+Filter for the year 1978 and remove rows with missing values (the function na.exclude() is one way to do this–check out the documentation!).
+```{r}
+# Filter for year 1978
+df_vocab_1978 <- df_vocab %>% 
+              subset(year == "1978") %>% 
+              drop_na() %>% 
+  mutate(educ = as.factor(educ), vocab = as.factor(vocab)) # convert vocab and educ to factors
+
+```
+
+Is a person’s score on the vocabulary test (‘vocab’) significantly impacted by their level of education (‘educ’)?
+Visualize the relationship in a plot and build a model. Briefly explain the results. Whether a person is the native of an English-speaking country (‘nativeBorn’) could potentially have an impact on the size of their vocabulary.
+```{r}
+# Investigate the relationship between vocabulary score and level of education
+df_vocab_1978 %>% 
+  ggplot(aes(x = educ, y = vocab)) +
+  geom_point(shape = 1,
+             position = position_jitter(width=0.2, height = 0.1)) + # adjusting for axis x and y are different lengths
+  geom_smooth(method = "lm", 
+              formula = y ~ x, 
+              colour = "darkred", 
+              aes(as.numeric(educ), as.numeric(vocab))) +
+  labs(title = "Relationship between Vocabulary Score and Level of Education",
+       x = "Level of Education",
+       y = "Vocabulary Score")
+
+# Summary of model
+lm( data = df_vocab_1978,
+    formula = as.numeric(vocab) ~ as.numeric(educ) ) %>%  # convert back to numeric for formula
+  summary()
+```
+### ANSWER: 
+When modelling the vocabulary score as a linear function to education level we see that for each unit that education level is increased the vocabulary score increases by 0.393, when assuming all else is held constant. However, the standard residual error of 1.885 is a relatively large error measure in relation to the estimated fixed effect of eduction level which may indicate that the model is not a good fit for the data. The R^2 value of 0.2883 indicates that only 0.2% of the variance in the vocabulary score can be explained by the education level, which points to the modelnot being a good fit as it is unable to account for the variance in the data. Hence, we should be cautious in stating that the education level is a good predictor of the vocabulary score in this model.
+
+
+## Question
+Investigate whether a person is the native of an English-speaking country (‘nativeBorn’) could potentially have an impact on the size of their vocabulary. Visualize the relationship and add the predictor to the model. Briefly explain the results.
+```{r}
+# investigate relationship between nativeBorn and vocabulary score
+df_vocab_1978 %>% 
+  ggplot(aes(x = nativeBorn, y = vocab, fill = nativeBorn)) +
+  geom_point(shape = 1,
+             aes(color = nativeBorn), # not working!!!1
+             position = position_jitter(width=0.05, height = 0.01)) + # adjusting for axis x and y are different lengths
+  geom_smooth(method = "lm", 
+              formula = y ~ x, 
+              colour = "darkred", 
+              aes(nativeBorn, as.numeric(vocab))) +
+  labs(title = "Relationship between Vocabulary Score and native born",
+       x = "native born",
+       y = "Vocabulary Score")
+
+# now as a boxplot
+ggplot(df_vocab_1978, aes(x = nativeBorn, y = as.numeric(vocab), fill = nativeBorn)) +
+  geom_boxplot() +
+  labs(
+    title = "Relationship between Vocabulary Score and Native Born",
+    x = "Native Born",
+    y = "Vocabulary Score"
+  ) +
+  theme_minimal()
+
+# Now as a histogram
+ggplot(df_vocab_1978, aes(x = as.numeric(vocab), fill = nativeBorn)) +
+  geom_histogram(binwidth = 1, position = "dodge", alpha = 0.7) +
+  labs(
+    title = "Distribution of Vocabulary Scores by Native Born Status",
+    x = "Vocabulary Score",
+    y = "Count"
+  ) +
+  theme_minimal()
+
+
+
+# Summary of model
+lm( data = df_vocab_1978,
+    formula = as.numeric(vocab) ~ nativeBorn ) %>%  # convert back to numeric for formula
+  summary()
+```
+Investigate whether a person is the native of an English-speaking country (‘nativeBorn’) could potentially have an impact on the size of their vocabulary. Visualize the relationship and add the predictor to the model. Briefly explain the results.
+### ANSWER: 
+When using a linear function to model size of vocabulary in relation to whether a person was natuve born, we see that being native born appears to have a positive effect on the vocabulary score (0.68). However, the sample size is much larger for the native born group, than the non-native born group which influences the ability to make a fair comparison between the two groups. The R^2 value of 0.005 is very low indicating that the model may not be a good fit as it is unable to account for the variance in the data. This, paired with a residual standard error of 2.229, means we should be cautious in stating that the native born status in general impacts vocabulary score, despite it having a significant P-value so it outputs as a good predictor of the vocabulary score in this particular model, with this particular data set.
+
+
+## Question
+Does  a  person’s  level  of  education  depend  on  whether they  are  a  native  of  the  country? Visualize the relationship. 
+```{r}
+# investigate relationship between nativeBorn and education level
+df_vocab_1978 %>% 
+  ggplot(aes(x = vocab, y = educ, fill = nativeBorn)) +
+  geom_point(shape = 1,
+             aes(colour = nativeBorn),
+             position = position_jitter(width=0.2, height = 0.2)) + # adjusting for axis x and y are different lengths
+  geom_smooth(method = "lm", 
+              formula = y ~ x) +
+  labs(title = "Relationship between Education Level and Vocabulary Score by Native Born Status",
+       x = "Vocab score",
+       y = "Education level")
+
+
+# Faceted scatter plot for vocab vs. educ by nativeBorn
+ggplot(df_vocab_1978, aes(x = as.numeric(vocab), y = as.numeric(educ), color = nativeBorn)) +
+  geom_point(position = position_jitter(width = 0.2, height = 0.2)) +
+  geom_smooth(method = "lm", formula = y ~ x, se = FALSE) +
+  facet_wrap(~ nativeBorn) +
+  labs(
+    title = "Relationship between Education Level and Vocabulary Score by Native Born Status",
+    x = "Vocabulary Score",
+    y = "Education Level"
+  ) +
+  theme_minimal()
+
+
+# Heatmap for vocab vs. educ colored by density
+ggplot(df_vocab_1978, aes(x = as.numeric(vocab), y = as.numeric(educ))) +
+  geom_bin2d(binwidth = c(1, 1)) +
+  scale_fill_viridis_c() +
+  facet_wrap(~ nativeBorn) +
+  labs(
+    title = "Heatmap of Vocabulary Score and Education Level by Native Born Status",
+    x = "Vocabulary Score",
+    y = "Education Level"
+  ) +
+  theme_minimal()
+
+
+# Summary of model
+lm( data = df_vocab_1978,
+    formula = as.numeric(vocab) ~ nativeBorn + as.numeric(educ)) %>%  # convert back to numeric for formula
+  summary()
+```
+### ANSWER:
+When modelling using a linear function the effect of education level and whether a person was native born on vocab score, we see that being native born appears to have a significant positive effect on the vocab score (0.65) (0 or 0.65) as well as each step of the education level (0.39 per level) on vocab score. However, if we want to see if the level of education changes as a result of being native born or not then we should include an interaction effect in the model, to accommodate the possibility of a relationship between these two predictors, with the effect of education level being able to differ dependent on if they are native born or not. 
+
+
+
+## Question:
+Do you think it makes sense to add the relationship as an interaction term? Try creating the model and briefly explain the results. Which model performs best?
+```{r}
+# Adding interaction term between nativeBorn and education to investigate the vocab score outcome 
+  
+# Summary of model
+lm( data = df_vocab_1978,
+    formula = as.numeric(vocab) ~ as.numeric(educ)*nativeBorn) %>%  # convert back to numeric for formula
+  summary()
+```
+### ANSWER:
+When introducing an interaction effect between being nativeBorn and education level we see that the linear function model outputs only education level as a significant predictor with a positive coefficient estimate of (0.415). The interaction effect between education level and native born status is not significant, which indicates that the effect of education level on vocab score does not differ between native born and non-native born individuals. Interestingly this model finds that when adding the interaction effect, the main effect of the nativeBorn predictor is no longer statistically significant. We can however see that the standard error of the nativeBornyes predictor is very large compared to the Estimate in both this, and the previous model which indicates that it is a poor predictor.
+
+As a result, I would argue that the best model is the first, most simple model with one predictor. The R^2 for the first model is 0.288, which only marginally increases when the extra predictor of nativeBorn is added, both with only main effects and when interactions are included. Hence the predictive power of the model is not improved by adding the interaction term, and in order to avoid overfitting and allow for best interpretability, I would work with the first model when analysing this data set.
+
