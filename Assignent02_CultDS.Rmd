@@ -89,7 +89,7 @@ lm( data = df_vocab_1978,
   summary()
 ```
 ### ANSWER: 
-When modelling the vocabulary score as a linear function to education level we see that for each unit that education level is increased the vocabulary score increases by 0.393, when assuming all else is held constant. However, the standard residual error of 1.885 is a relatively large error measure in relation to the estimated fixed effect of eduction level which may indicate that the model is not a good fit for the data. The R^2 value of 0.2883 indicates that only 0.2% of the variance in the vocabulary score can be explained by the education level, which points to the modelnot being a good fit as it is unable to account for the variance in the data. Hence, we should be cautious in stating that the education level is a good predictor of the vocabulary score in this model.
+When modelling the vocabulary score as a linear function to education level we see that for each unit that education level is increased the vocabulary score increases by 0.393, when assuming all else is held constant. However, the standard residual error of 1.885 is a relatively large error measure in relation to the estimated fixed effect of eduction level which may indicate that the model is not a good fit for the data. The R^2 value of 0.2883 indicates that 28% of the variance in the vocabulary score can be explained by the education level, which points to the model not being a great fit as it is unable to account for a lot of the variance in the data. Hence, we should be cautious in stating that the education level is a good predictor of the vocabulary score in this model.
 
 
 ## Question
